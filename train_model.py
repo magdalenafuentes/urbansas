@@ -112,7 +112,9 @@ def main(*,
             "offscreen sound" audio annotations.
          filter_confirmed: either bool or number: indicating if we want to filter data that isn't confirmed
             by audio annotations, and if it's passes as a number, what percent of the annotations
-            should be filtered?
+            should be filtered
+        audio_filtered_labels: boolean indicating if we want to filter to only video annotations
+            that coincide with an audio annotation.
          weight_act: activate weighting based on activation density
          optimizer: optimizer
 
@@ -240,6 +242,9 @@ def main(*,
         else:
             raise ValueError(f'Unknown loss function: {loss}')
 
+    print('loss', loss)
+    print(loss_fct)
+
     metrics = [
         AUC(from_logits=True, name='auc_roc', curve='ROC'),
         AUC(from_logits=True, name='auc_pr', curve='PR'),
@@ -265,7 +270,11 @@ def main(*,
         keras.callbacks.ReduceLROnPlateau(monitor=monitor, mode='min' if 'loss' in monitor else 'max',
                                           factor=0.1, patience=rlrop_patience, verbose=True),
         # Checkpoint everything
+        #keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath.with_name('best_val_auc_pr.h5'),
+        #                                monitor="val_auc_pr",
+        #                                save_best_only=False),
         keras.callbacks.ModelCheckpoint(filepath=checkpoint_filepath.with_name('epoch_{epoch:04d}.h5')),
+
         keras.callbacks.CSVLogger(csv_log_path),
     ]
 
@@ -333,3 +342,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(**vars(args))
+

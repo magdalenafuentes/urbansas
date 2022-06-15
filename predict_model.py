@@ -18,9 +18,9 @@ import keras.models
 import numpy as np
 from scipy.special import expit
 from tqdm.auto import tqdm
+from losses import WeightedBinaryCrossentropy
 
 import index
-from losses import WeightedBinaryCrossentropy
 import project_params
 import utils
 from data.BatchRawDataset import BatchRawDataset
@@ -36,11 +36,12 @@ def main(*,
          epoch: int or None,
          metric: str or None,
          overwrite: str,
-         sr: float,
+         loss: str,
+         sr: int,
          batch_size: int,
          labels_period: float,
          point_sources: bool,
-         loss: str,
+         filter_confirmed: bool,
          ):
     """
     Attributes:
@@ -52,6 +53,14 @@ def main(*,
         metric: select epoch that maximizes/minimizes the given metric. If both epoch and metric are None
                 uses monitor from train parameters
         overwrite: bool indicating if predictions will overwrite previous with same config
+        loss: loss used in training
+        sr: sampling rate of the audio signal used in training
+        batch_size: batch size used in training
+        labels_period: frequency of video annotation labels (e.g. 0.5 = two labels/second)
+        point_sources: boolean indicating if we are using center-point or box-wise annotations.
+        filter_confirmed: either bool or number: indicating if we want to filter data that isn't confirmed
+            by audio annotations, and if it's passes as a number, what percent of the annotations
+            should be filtered
     """
     checkpoint_dir = checkpoints_folder.joinpath(config_name)
     params_path = checkpoint_dir.joinpath('params.json')
@@ -79,15 +88,16 @@ def main(*,
 
     # Load dataset
     db = BatchRawDataset(index_path=index_folder.joinpath(f'{dataset}.json'),
-                         sr=train_params['sr'],
-                         batch_size=train_params['batch_size'],
+                         sr=sr,
+                         batch_size=batch_size,
                          folds=folds,
                          in_dur=train_params['in_dur'],
                          classes=train_params['classes'],
                          num_regions=train_params['num_regions'],
-                         labels_period=train_params['labels_period'],
+                         labels_period=labels_period,
                          fov=train_params['fov'],
-                         point_sources=train_params['point_sources'],
+                         point_sources=point_sources,
+                         filter_confirmed=filter_confirmed,
                          fold_key=fold_key)
 
     if overwrite or not predictions_file.exists():
@@ -159,7 +169,8 @@ if __name__ == "__main__":
     parser.add_argument('--sr', type=int, default=project_params.sr)
     parser.add_argument('--batch_size', type=int, default=project_params.batch_size)
     parser.add_argument('--labels_period', type=float, default=project_params.labels_period)
-    parser.add_argument('--point_sources', type=bool, default=project_params.point_sources)
+    parser.add_argument('--point_sources', action='store_true')
+    parser.add_argument('--filter_confirmed', action='store_true', default=False)
     parser.add_argument('--loss', type=str, default=project_params.loss)
 
 

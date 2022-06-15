@@ -90,3 +90,6 @@ dcase_seld_params = dict(
     dropout_rate=0.05,
 )
 
+# Ground truth flags
+audio_filtered_labels = None
+filter_confirmed = True

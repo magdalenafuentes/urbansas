@@ -80,10 +80,10 @@ class BatchRawDataset:
                  weight_act: bool = False,
                  ):
         """Initializes BatchRawDataset class with above args."""
-        print('nivs', filter_nivs)
-        print('offscreen', filter_offscreen)
-        print('confirmed', filter_confirmed)
-        print('audio_filtered', audio_filtered_labels)
+        print('Filtering nivs', filter_nivs)
+        print('Filtering offscreen', filter_offscreen)
+        print('Using video annot confirmed by audio (with some overlap)', filter_confirmed)
+        print('Using only video annot that overlap with audio', audio_filtered_labels)
 
         # Load dataset index, containing GT
         with Path(index_path).open('r') as f:
@@ -238,7 +238,7 @@ class BatchRawDataset:
 
             # fill the ground truth mask
             for win_idx, (i_az_l, i_az_r) in enumerate(zip(az_idx_left, az_idx_right)):
-                file_gt[event_win_idx0 + win_idx, label_idx, i_az_r:i_az_l + 1] += 1
+                file_gt[event_win_idx0 + win_idx, label_idx, i_az_l:i_az_r + 1] += 1
 
         # As multiple events of the same class can activate the same azimuth index, here we clip
         file_gt = np.clip(file_gt, 0, 1)

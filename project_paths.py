@@ -24,8 +24,7 @@ results_folder = workspace.joinpath('results')
 data_folder = workspace.joinpath('data')
 
 # Datasets root folders
-#urbansas_root = Path(os.getenv('URBANSAS_ROOT', '../urbansas_dataset/')) # The dataset folder
-urbansas_root = Path(os.getenv('URBANSAS_ROOT', '/scratch/mf3734/share/urbansas/dataset'))
+urbansas_root = Path(os.path.join(os.getenv('HOME'), 'sound_datasets', 'urbansas')) # The dataset folder
 
 # Dataset class name to root map
 dataset_root_map = {

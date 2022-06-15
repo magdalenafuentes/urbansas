@@ -30,7 +30,6 @@ LICENSE file in the root directory of this source tree.
 
 # import os
 import slurmjobs
-import numpy as np
 
 # You should run this script from inside localize_sound
 
@@ -57,13 +56,14 @@ num_regions = [5]
 in_dur = 4
 point_sources = [True, None]
 filter_confirmed = [True]
-audio_filtered_labels = [True]
+audio_filtered_labels = [None]
 
 train_dataset = 'Urbansas'
 val_dataset = 'Urbansas'
 folds = [0, 1, 2, 3, 4]
-batch_size = 128 #[64, 128, 256]
-metric = 'auc_pr'
+batch_size = 128
+metric = 'val_auc_pr'
+loss = ['WeightedBinaryCrossentropy']
 
 
 #########################
@@ -76,7 +76,7 @@ class Singularity(slurmjobs.Singularity):
         slurmjobs.Singularity.options,
         # override default options
         sif='cuda11.2.2-cudnn8-devel-ubuntu20.04.sif',
-        overlay='/scratch/mf3734/share/urbansas/icasspBaseline-5GB-200K.ext3',
+        overlay='/scratch/mf3734/share/urbansas/urbansas-5GB-200K.ext3',
         sbatch=sbatch,
     )
 
@@ -108,13 +108,9 @@ class Shell(slurmjobs.Shell):
 train_folds = [folds[:i] + folds[i+1:] for i in range(len(folds))]
 
 grid = slurmjobs.Grid([
-    ('num_regions', num_regions),
-    #('batch_size', batch_size),
-    #('in_dur', in_dur),
     ('point_sources', point_sources),
     ('filter_confirmed', filter_confirmed),
     ('audio_filtered_labels', audio_filtered_labels),
-    #('val_folds', folds),
     (('train_folds', 'val_folds'), (train_folds, folds))
 ])
 
@@ -141,9 +137,7 @@ def generate(kind, name=None):
     batch_train = cls('python train_model.py', job_id='config_name', root_dir=root_dir, name=f'train_model{f"-{name}" if name else ""}')
     # generate the jobs and print out a summary
     run_script, job_paths = batch_train.generate(
-        grid, fov=fov,
-        batch_size=batch_size,
-        in_dur=in_dur,
+        grid,
         train_dataset=train_dataset,
         val_dataset=val_dataset,
         overwrite=True)
@@ -156,14 +150,16 @@ def generate(kind, name=None):
     predict_grid = slurmjobs.LiteralGrid([
         {
             'folds': d['val_folds'],
-            'config_name': batch_predict.format_job_id(d, name=f'train_model{f"-{name}" if name else ""}')
+            'config_name': batch_predict.format_job_id(d, name=f'train_model{f"-{name}" if name else ""}'),
+            'point_sources': d['point_sources'],
+            'filter_confirmed': d['filter_confirmed']
         }
         for d in grid
     ])
     print(predict_grid)
     # generate the jobs and print out a summary
     run_script, job_paths = batch_predict.generate(
-        predict_grid, dataset=train_dataset, metric=metric, overwrite=True)
+        predict_grid, overwrite=True)
     slurmjobs.util.summary(run_script, job_paths)
 
 def main(*kinds, name=None):
