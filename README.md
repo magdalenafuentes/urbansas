@@ -1,4 +1,4 @@
-# ICASSP 2022 Urbansas Baseline
+# Urbansas Baseline
 
 ## Installation
 ```bash
@@ -15,7 +15,7 @@ pip install -e .
 
 ## Downloading the dataset
 
-The dataset is hosted on [Zenodo](#). You can also download it using [Soundata](https://soundata.readthedocs.io/en/latest/).
+The dataset is hosted on [Zenodo](https://zenodo.org/record/6658386#.Yq-QrfPMK74). You will soon be able to download it using [Soundata](https://soundata.readthedocs.io/en/latest/).
 
 
 ```python
