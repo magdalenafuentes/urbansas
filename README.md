@@ -1,13 +1,15 @@
 # Urbansas Baseline
 
+For a full description of the dataset visit [our website](https://beasteers.github.io/urbansas-website/).
+
 ## Installation
 ```bash
 conda create -n urbansas python=3.8
 conda activate urbansas
 
 # download the code
-git clone https://github.com/magdalenafuentes/localize_sound.git
-cd localize_sound
+git clone https://github.com/magdalenafuentes/urbansas.git
+cd urbansas
 
 # install dependencies
 pip install -e .
